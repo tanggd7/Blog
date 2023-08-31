@@ -1,10 +1,8 @@
 {
   "editor.suggest.snippetsPreventQuickSuggestions": false,
   "aiXcoder.showTrayIcon": true,
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
   "prettier.printWidth": 80,
   "prettier.semi": false,
-  "prettier.singleQuote": false
+  "prettier.singleQuote": false,
+  "editor.formatOnSave": true
 }
