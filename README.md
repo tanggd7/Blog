@@ -1,9 +1,14 @@
 # 随便写点东西，有木有用看缘分
+
 收集了一些东西，包括题目、代码、知识点，还有一些手写的尝试，但是大部分也是借鉴，如有雷同，那就是抄袭 😎
 
 ### 尝试手写一下
 
 - [手写 Vue2.0、Vue Router、Vuex](https://github.com/tanggd7/vue-handwriting)
+
+### 尝试理解一下
+
+- [图解 Chrome V8](https://github.com/tanggd7/Blog/issues/3)
 
 ### 不常用但很有用
 
