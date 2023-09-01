@@ -4,5 +4,8 @@
   "prettier.printWidth": 80,
   "prettier.semi": false,
   "prettier.singleQuote": false,
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
 }

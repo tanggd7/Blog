@@ -20,15 +20,45 @@
         console.log("add promise")
         Promise.resolve().then(function () {
           console.log("promise end")
+          console.log(document.body.style.backgroundColor)
+          alert("promise end")
         })
       }
 
       // 延时队列
-      function timer() {
-        console.log("add timer")
+      function timer0() {
+        console.log("add timer0")
         setTimeout(function () {
-          console.log("timer end")
-        }, 100)
+          console.log("timer0 end")
+          alert("timer0 end")
+        }, 0)
+      }
+
+      // 延时队列
+      function timer1() {
+        console.log("add timer1")
+        setTimeout(function () {
+          console.log("timer1 end")
+          alert("timer1 end")
+        }, 1)
+      }
+
+      // 延时队列
+      function timer2() {
+        console.log("add timer2")
+        setTimeout(function () {
+          console.log("timer2 end")
+          alert("timer2 end")
+        }, 2900)
+      }
+
+      // 延时队列
+      function timer3() {
+        console.log("add timer3")
+        setTimeout(function () {
+          console.log("timer3 end")
+          alert("timer3 end")
+        }, 500)
       }
 
       // 交互队列
@@ -36,34 +66,61 @@
         console.log("add event")
         aaa.onclick = function () {
           console.log("event end")
+          alert("event end")
         }
       }
 
       // 网络队列
-      function getFetch() {
-        console.log("add fetch")
+      function getFetch0() {
+        console.log("add fetch0")
         fetch("./a.json").then(function (res) {
-          console.log("res end")
+          console.log("fetch0 end")
+          alert("fetch0 end")
+        })
+      }
+
+      // 网络队列
+      function getFetch1() {
+        console.log("add fetch1")
+        fetch("./a.json").then(function (res) {
+          console.log("fetch1 end")
+          alert("fetch1 end")
         })
       }
 
       begin.onclick = function () {
-        promise()
-        timer()
+        document.body.style.backgroundColor = "gray"
+
+        getFetch0()
+        getFetch1()
+        timer0()
+        timer1()
+        timer2()
+        timer3()
         event()
-        getFetch()
+        promise()
         console.log("===========")
         delay()
 
-        // add promise
-        // add timer
-        // add event
-        // add fetch
-        // ===========
-        // promise end
-        // event end
-        // res end
-        // timer end
+        //   add fetch0
+        //   add fetch1
+        //   add timer0
+        //   add timer1
+        //   add timer2
+        //   add timer3
+        //   add event
+        //   add promise
+        //   ===========
+        //   promise end
+        //   gray
+        //   event end
+        //   GUI会渲染页面，改变底色
+        //   timer0 end
+        //   fetch0 end
+        //   timer1 end
+        //   timer3 end
+        //   timer2 end
+        //   fetch1 end
       }
     </script>
   </body>
