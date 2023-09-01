@@ -21,7 +21,7 @@
         Promise.resolve().then(function () {
           console.log("promise end")
           console.log(document.body.style.backgroundColor)
-          alert("promise end")
+          // alert("promise end")
         })
       }
 
@@ -30,7 +30,10 @@
         console.log("add timer0")
         setTimeout(function () {
           console.log("timer0 end")
-          alert("timer0 end")
+          Promise.resolve().then(function () {
+            console.log("timer0 promise")
+          })
+          // alert("timer0 end")
         }, 0)
       }
 
@@ -39,7 +42,10 @@
         console.log("add timer1")
         setTimeout(function () {
           console.log("timer1 end")
-          alert("timer1 end")
+          Promise.resolve().then(function () {
+            console.log("timer1 promise")
+          })
+          // alert("timer1 end")
         }, 1)
       }
 
@@ -48,7 +54,7 @@
         console.log("add timer2")
         setTimeout(function () {
           console.log("timer2 end")
-          alert("timer2 end")
+          // alert("timer2 end")
         }, 2900)
       }
 
@@ -57,7 +63,10 @@
         console.log("add timer3")
         setTimeout(function () {
           console.log("timer3 end")
-          alert("timer3 end")
+          Promise.resolve().then(function () {
+            console.log("timer3 promise")
+          })
+          // alert("timer3 end")
         }, 500)
       }
 
@@ -66,7 +75,7 @@
         console.log("add event")
         aaa.onclick = function () {
           console.log("event end")
-          alert("event end")
+          // alert("event end")
         }
       }
 
@@ -75,7 +84,7 @@
         console.log("add fetch0")
         fetch("./a.json").then(function (res) {
           console.log("fetch0 end")
-          alert("fetch0 end")
+          // alert("fetch0 end")
         })
       }
 
@@ -84,7 +93,7 @@
         console.log("add fetch1")
         fetch("./a.json").then(function (res) {
           console.log("fetch1 end")
-          alert("fetch1 end")
+          // alert("fetch1 end")
         })
       }
 
