@@ -7,6 +7,7 @@
 ### 尝试理解一下
 
 - [图解 Chrome V8](https://github.com/tanggd7/Blog/issues/3)
+- [Chrome 新版的事件队列优先级](https://github.com/tanggd7/Blog/issues/4)
 
 ### 不常用但很有用
 

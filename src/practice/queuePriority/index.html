@@ -88,6 +88,15 @@
         fetch("./a.json").then(function (res) {
           console.log("fetch0 end")
           // alert("fetch0 end")
+          Promise.resolve().then(function () {
+            console.log("fetch0 promise")
+          })
+          setTimeout(() => {
+            console.log("fetch0 timer1")
+          }, 0)
+          setTimeout(() => {
+            console.log("fetch0 timer2")
+          }, 1)
         })
       }
 
