@@ -75,6 +75,9 @@
         console.log("add event")
         aaa.onclick = function () {
           console.log("event end")
+          Promise.resolve().then(function () {
+            console.log("event promise")
+          })
           // alert("event end")
         }
       }
@@ -110,26 +113,6 @@
         promise()
         console.log("===========")
         delay()
-
-        //   add fetch0
-        //   add fetch1
-        //   add timer0
-        //   add timer1
-        //   add timer2
-        //   add timer3
-        //   add event
-        //   add promise
-        //   ===========
-        //   promise end
-        //   gray
-        //   event end
-        //   GUI会渲染页面，改变底色
-        //   timer0 end
-        //   fetch0 end
-        //   timer1 end
-        //   timer3 end
-        //   timer2 end
-        //   fetch1 end
       }
     </script>
   </body>
