@@ -17,3 +17,4 @@
 
 - [获取视频帧](https://github.com/tanggd7/js-handwriting/blob/master/src/practice/extractFrame/index.js)
 - [B 站防挡弹幕](https://github.com/tanggd7/js-handwriting/blob/master/src/practice/bilibiliBulletScreen/index.html)
+- [Web大师课](https://github.com/tanggd7/Blog/tree/master/src/doc/Web%E5%A4%A7%E5%B8%88%E8%AF%BE)
