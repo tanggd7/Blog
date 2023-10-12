@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      li {
+        display: inline-block;
+        font-size: 0;
+      }
+
+      li a {
+        display: inline-block;
+        text-align: center;
+        font: normal 16px Arial;
+      }
+
+      li:last-child a {
+        font-weight: bold;
+      }
+
+      /* SOLUTION */
+      /* The pseudo element has the same content and hover style, so it pre-sets the width of the element and visibility: hidden hides the pseudo element from actual view. */
+      a::before {
+        display: block;
+        content: attr(title);
+        font-weight: bold;
+        height: 0;
+        overflow: hidden;
+        visibility: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <ul>
+      <li><a href="#" title="height">height</a></li>
+      <li><a href="#" title="icon">icon</a></li>
+      <li><a href="#" title="left">left</a></li>
+      <li><a href="#" title="letter-spacing">letter-spacing</a></li>
+      <li><a href="#" title="line-height">line-height</a></li>
+    </ul>
+  </body>
+</html>
