@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .text {
+        border: 1px solid;
+        background-color: aquamarine;
+        height: 20px;
+        width: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="text" />
+    <script>
+      function createAnimation(options) {
+        var from = options.from
+        var to = options.to
+        var totalNS = options.totalNS || 1000 // 变化总时间
+        var duration = options.duration || 15 // 动画间隔时间
+        var times = Math.floor(totalNS / duration) // 变化的次数
+        var dis = (to - from) / times // 每一次变化的值
+        var curTimes = 0 // 当前变化的次数
+        var timerId = setInterval(() => {
+          from += dis
+          curTimes++ // 当前变化增加一次
+          if (curTimes >= times) {
+            // 变化次数达到了
+            from = to // 变化完成了
+            clearInterval(timerId)
+            options.onEnd && options.onEnd()
+          }
+          options.onMove && options.onMove(from)
+        }, duration)
+      }
+
+      setTimeout(() => {
+        createAnimation({
+          from: 0,
+          to: 1000,
+          totalNS: 5000,
+          duration: 15,
+          onMove: function (n) {
+            console.log("n", n)
+            var dom = document.querySelector(".text")
+            dom.style.width = n + "px"
+          },
+          onEnd: function () {
+            console.log("结束了")
+          },
+        })
+      }, 1000)
+    </script>
+  </body>
+</html>
