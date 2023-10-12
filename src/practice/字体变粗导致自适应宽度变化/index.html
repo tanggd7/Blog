@@ -20,8 +20,7 @@
         font-weight: bold;
       }
 
-      /* SOLUTION */
-      /* The pseudo element has the same content and hover style, so it pre-sets the width of the element and visibility: hidden hides the pseudo element from actual view. */
+      /* 使用伪元素，然后通过 attr 获取自定义属性 title，使用它占位宽度，再隐藏 */
       a::before {
         display: block;
         content: attr(title);
