@@ -31,7 +31,9 @@
             // 变化次数达到了
             from = to // 变化完成了
             clearInterval(timerId)
+            options.onMove && options.onMove(from)
             options.onEnd && options.onEnd()
+            return
           }
           options.onMove && options.onMove(from)
         }, duration)
