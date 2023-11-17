@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>弹性运动</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .box {
+        position: absolute;
+        background-color: cornflowerblue;
+        height: 100px;
+        width: 100px;
+      }
+      .line {
+        position: absolute;
+        left: 500px;
+        width: 0;
+        border: 0;
+        border-left: 1px solid black;
+        height: 100px;
+      }
+      .btn {
+        position: absolute;
+        top: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box"></div>
+    <div class="line"></div>
+    <button class="btn">开始</button>
+    <script>
+      const btnDom = document.querySelector(".btn")
+      btnDom.addEventListener("click", function () {
+        const boxDom = document.querySelector(".box")
+        const lineDom = document.querySelector(".line")
+        const lineDomRect = lineDom.getBoundingClientRect()
+        const lineDomLeft = lineDomRect.left
+        startMove(boxDom, lineDomLeft)
+      })
+
+      var timer = null
+      function startMove(dom, target) {
+        clearInterval(timer)
+        var speed = 0
+        timer = setInterval(() => {
+          // 除数是一个阈值，计算出的 sPlus 是一个速度增量，
+          // 除数不能太大，不然还没有过临界点，速度就非常小了
+          var sPlus = (target - dom.offsetLeft) / 10
+          speed += sPlus
+          speed *= 0.8 // 加速度衰减，若不衰减，那么就会来回运动不停止
+          if (Math.abs(speed) < 1 && Math.abs(target - dom.offsetLeft) < 1) {
+            // 到达目标点
+            clearInterval(timer)
+            return
+          }
+          dom.style.left = dom.offsetLeft + speed + "px"
+        }, 15)
+      }
+    </script>
+  </body>
+</html>
