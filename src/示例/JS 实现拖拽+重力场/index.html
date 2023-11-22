@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>拖拽+重力场</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background-color: #333333;
+      }
+      .div {
+        width: 70px;
+        height: 70px;
+        background-color: cadetblue;
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="div"></div>
+    <script>
+      var dom = document.querySelector(".div")
+      var timer = null
+      var lastX = 0
+      var lastY = 0
+      var speedX = 0
+      var speedY = 0
+      // 让 dom 自由落体
+      dom.onmousedown = function (e) {
+        clearInterval(timer)
+
+        // 鼠标位置
+        var mX = e.clientX
+        var mY = e.clientY
+        // 方块位置
+        var domX = dom.offsetLeft
+        var domY = dom.offsetTop
+        // 计算鼠标距离方块左上顶点的距离
+        var left = e.clientX - domX
+        var top = e.clientY - domY
+        var documentWidth = document.documentElement.clientWidth
+        var documentHeight = document.documentElement.clientHeight
+        // 鼠标拖动事件
+        document.onmousemove = function (e) {
+          var x = e.clientX - left
+          var y = e.clientY - top
+          dom.style.left = x + "px"
+          dom.style.top = y + "px"
+          speedX = x - lastX
+          speedY = y - lastY
+          lastX = x
+          lastY = y
+        }
+      }
+      document.addEventListener("mouseup", function (e) {
+        document.onmousedown = null
+        document.onmousemove = null
+        move(dom, speedX, speedY)
+      })
+
+      /** 重力场 */
+      function move(dom, speedX, speedY) {
+        // var g = 5
+        var domWidth = dom.offsetWidth
+        var domHeight = dom.offsetHeight
+        var documentWidth = document.documentElement.clientWidth
+        var documentHeight = document.documentElement.clientHeight
+        var yG = 8 // 重力加速度
+        timer = setInterval(function () {
+          speedY += yG
+          var currentLeft = dom.offsetLeft
+          var currentTop = dom.offsetTop
+          var newLeft = currentLeft + speedX
+          var newTop = currentTop + speedY
+
+          // 碰到左右边界减速
+          if (newLeft >= documentWidth - domWidth) {
+            speedX *= -1
+            speedX *= 0.8
+            speedY *= 0.8
+            newLeft = documentWidth - domWidth
+          }
+          if (newLeft <= 0) {
+            speedX *= -1
+            speedX *= 0.8
+            speedY *= 0.8
+          }
+
+          if (newTop >= documentHeight - domHeight) {
+            speedY *= -1
+            speedX *= 0.8
+            speedY *= 0.8
+            newTop = documentHeight - domHeight
+          }
+          if (newTop <= 0) {
+            speedY *= -1
+            speedX *= 0.8
+            speedY *= 0.8
+          }
+
+          if (Math.abs(speedX) < 1) {
+            speedX = 0
+          }
+          if (Math.abs(speedY) < 1) {
+            speedY = 0
+          }
+
+          dom.style.left = newLeft + "px"
+          dom.style.top = newTop + "px"
+
+          if (
+            Math.abs(speedX) === 0 &&
+            Math.abs(speedY) === 0 &&
+            newTop === documentHeight - domHeight
+          ) {
+            clearInterval(timer)
+          }
+        }, 20)
+      }
+    </script>
+  </body>
+</html>
