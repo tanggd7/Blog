@@ -1,7 +1,13 @@
-import { createApp } from "vue"
 import { createPinia } from "pinia"
-import "./style.css"
+import piniaPluginPersistedstate from "pinia-plugin-persistedstate"
+import { createApp } from "vue"
 import App from "./App.vue"
-import { myPlugin1, resetPlugin } from "./store/plugin"
+import { myPlugin, resetPlugin } from "./store/plugin"
+import "./style.css"
 
-createApp(App).use(createPinia().use(myPlugin1).use(resetPlugin)).mount("#app")
+const pinia = createPinia()
+pinia.use(myPlugin)
+pinia.use(resetPlugin)
+pinia.use(piniaPluginPersistedstate) // 持久化插件
+
+createApp(App).use(pinia).mount("#app")
