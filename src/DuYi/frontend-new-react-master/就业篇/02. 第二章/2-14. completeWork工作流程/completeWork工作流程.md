@@ -13,24 +13,36 @@
 
 <img src="https://xiejie-typora.oss-cn-chengdu.aliyuncs.com/2023-03-01-060445.png" alt="image-20230301140444822" style="zoom:50%;" />
 
-
-
 ## mount 阶段
 
 在 mount 流程中，首先会通过 createInstance 创建 FiberNode 所对应的 DOM 元素：
 
 ```js
-function createInstance(type, props, rootContainerInstance, hostContext, internalInstanceHandle){
+function createInstance(
+  type,
+  props,
+  rootContainerInstance,
+  hostContext,
+  internalInstanceHandle
+) {
   //...
-  if(typeof props.children === 'string' || typeof props.chidlren === 'number'){
+  if (
+    typeof props.children === "string" ||
+    typeof props.chidlren === "number"
+  ) {
     // children 为 string 或者 number 时做一些特殊处理
   }
-  
+
   // 创建 DOM 元素
-  const domElement = createElement(type, props, rootContainerInstance, parentNamespace);
-  
+  const domElement = createElement(
+    type,
+    props,
+    rootContainerInstance,
+    parentNamespace
+  )
+
   //...
-  return domElement;
+  return domElement
 }
 ```
 
@@ -46,7 +58,7 @@ function createInstance(type, props, rootContainerInstance, hostContext, interna
 ```js
 appendAllChildren = function(parent, workInProgress, ...){
   let node = workInProgress.child;
-  
+
   while(node !== null){
     // 步骤 1，向下遍历，对第一层 DOM 元素执行 appendChild
     if(node.tag === HostComponent || node.tag === HostText){
@@ -80,19 +92,17 @@ appendAllChildren = function(parent, workInProgress, ...){
 appendAllChildren 方法实际上就是在处理下一级的 DOM 元素，而且在 appendAllChildren 里面的遍历过程会更复杂一些，会多一些判断，因为 FiberNode 最终形成的 FiberTree 的层次和最终 DOMTree 的层次可能是有区别：
 
 ```jsx
-function World(){
+function World() {
   return <span>World</span>
 }
 
-<div>
-	Hello
-  <World/>
+;<div>
+  Hello
+  <World />
 </div>
 ```
 
 在上面的代码中，如果从 FiberNode 的角度来看，Hello 和 World 是同级的，但是如果从 DOM 元素的角度来看，Hello 就和 span 是同级别的。因此从 FiberNode 中查找同级的 DOM 元素的时候，经常会涉及到跨 FiberNode 层级进行查找。
-
-
 
 接下来 completeWork 会执行 finalizeInitialChildren 方法完成属性的初始化，主要包含以下几类属性：
 
@@ -102,11 +112,7 @@ function World(){
 - 不会再在 DOM 中冒泡的事件，包括 cancel、close、invalid、load、scroll、toggle，对应的是 listenToNonDelegatedEvent 方法
 - 其他属性，对应 setValueForProperty 方法
 
-
-
 该方法执行完毕后，最后进行 flags 的冒泡。
-
-
 
 总结一下，completeWork 在 mount 阶段执行的工作流程如下：
 
@@ -116,8 +122,6 @@ function World(){
 - 执行 appendChildren 将下一级 DOM 元素挂载在上一步所创建的 DOM 元素下
 - 执行 finalizeInitialChildren 完成属性初始化
 - 执行 bubbleProperties 完成 flags 冒泡
-
-
 
 ## update 阶段
 
@@ -131,46 +135,60 @@ updateHostComponent 的主要逻辑是在 diffProperties 方法里面，这个�
 相关代码如下：
 
 ```js
-function diffProperties(domElement, tag, lastRawProps, nextRawProps, rootContainer){
+function diffProperties(
+  domElement,
+  tag,
+  lastRawProps,
+  nextRawProps,
+  rootContainer
+) {
   // 保存变化属性的 key、value
-  let updatePayload = null;
+  let updatePayload = null
   // 更新前的属性
-  let lastProps;
+  let lastProps
   // 更新后的属性
-  let nextProps;
-  
+  let nextProps
+
   //...
   // 标记删除“更新前有，更新后没有”的属性
-  for(propKey in lastProps){
-    if(nextProps.hasOwnProperty(propKey) || !lastProps.hasOwnProperty(propKey) || lastProps[propKey] == null){
-      continue;
+  for (propKey in lastProps) {
+    if (
+      nextProps.hasOwnProperty(propKey) ||
+      !lastProps.hasOwnProperty(propKey) ||
+      lastProps[propKey] == null
+    ) {
+      continue
     }
-    
-    if(propKey === STYLE){
+
+    if (propKey === STYLE) {
       // 处理 style
     } else {
       //其他属性
-      (updatePayload = updatePayload || []).push(propKey, null);
+      ;(updatePayload = updatePayload || []).push(propKey, null)
     }
   }
-  
+
   // 标记更新“update流程前后发生改变”的属性
-  for(propKey in lastProps){
-    let nextProp = nextProps[propKey];
-    let lastProp = lastProps != null ? lastProps[propKey] : undefined;
-    
-    if(!nextProps.hasOwnProperty(propKey) || nextProp === lastProp || nextProp == null && lastProp == null){
-      continue;
+  for (propKey in lastProps) {
+    let nextProp = nextProps[propKey]
+    let lastProp = lastProps != null ? lastProps[propKey] : undefined
+
+    if (
+      !nextProps.hasOwnProperty(propKey) ||
+      nextProp === lastProp ||
+      (nextProp == null && lastProp == null)
+    ) {
+      continue
     }
-    
-    if(propKey === STYLE) {
+
+    if (propKey === STYLE) {
       // 处理 stlye
-    } else if(propKey === DANGEROUSLY_SET_INNER_HTML){
+    } else if (propKey === DANGEROUSLY_SET_INNER_HTML) {
       // 处理 innerHTML
-    } else if(propKey === CHILDREN){
+    } else if (propKey === CHILDREN) {
       // 处理单一文本类型的 children
-    } else if(registrationNameDependencies.hasOwnProperty(propKey)) {
-      if(nextProp != null) {
+    } else if (registrationNameDependencies.hasOwnProperty(propKey)) {
+      if (nextProp != null) {
         // 处理 onScroll 事件
       } else {
         // 处理其他属性
@@ -178,40 +196,38 @@ function diffProperties(domElement, tag, lastRawProps, nextRawProps, rootContain
     }
   }
   //...
-  return updatePayload;
+  return updatePayload
 }
 ```
 
 所有更新了的属性的 key 和 value 会保存在当前 FiberNode.updateQueue 里面，数据是以 key、value 作为数组相邻的两项的形式进行保存的
 
 ```jsx
-export default ()=>{
-  const [num, updateNum] = useState(0);
+export default () => {
+  const [num, updateNum] = useState(0)
   return (
     <div
-    	onClick = {()=>updateNum(num + 1)}
-      style={{color : `#${num}${num}${num}`}}
-      title={num + ''}
+      onClick={() => updateNum(num + 1)}
+      style={{ color: `#${num}${num}${num}` }}
+      title={num + ""}
     ></div>
-  );
+  )
 }
 ```
 
 点击 div 元素触发更新，那么这个时候 style、title 属性会发生变化，变化的数据会以下面的形式保存在 FiberNode.updateQueue 里面：
 
 ```js
-["title", "1", "style", {"color": "#111"}]
+;["title", "1", "style", { color: "#111" }]
 ```
 
 并且，当前的 FiberNode 会标记 Update：
 
 ```js
-workInProgress.flags |= Update;
+workInProgress.flags |= Update
 ```
 
-
-
-## flags冒泡
+## flags 冒泡
 
 我们知道，当整个 Reconciler 完成工作后，会得到一颗完整的 wipFiberTree，这颗 wipFiberTree 是由一颗一颗 FiberNode 组成的，这些 FiberNode 中有一些标记了 flags，有一些没有标记，现在就存在一个问题，我们如何高效的找到散落在这颗 wipFiberTree 中有 flag 标记的 FiberNode，那么此时就可以通过 flags 冒泡。
 
@@ -231,8 +247,6 @@ completeWork.subtreeFlags |= subtreeFlags;
 这样的收集方式，有一个好处，在渲染阶段，通过任意一级的 FiberNode.subtreeFlags 都可以快速确定该 FiberNode 以及子树是否存在副作用从而判断是否需要执行和副作用相关的操作。
 
 早期的时候，React 中实际上并没有使用 subtreeFlags 来通过 flags 冒泡收集副作用，而是使用的 effect list（链表）来收集的副作用，使用 subtreeFlags 有一个好处，就是能确定某一个 FiberNode 它的子树的副作用。
-
-
 
 ## 真题解答
 
@@ -259,7 +273,7 @@ completeWork.subtreeFlags |= subtreeFlags;
 > updateHostComponent 的主要逻辑是在 diffProperties 方法中，该方法包括两次遍历：
 >
 > - 第一次遍历，标记删除“更新前有，更新后没有”的属性
-> - 第二次遍历，标记更新“update流程前后发生改变”的属性
+> - 第二次遍历，标记更新“update 流程前后发生改变”的属性
 >
 > 无论是 mount 还是 update，最终都会进行 flags 的冒泡。
 >
