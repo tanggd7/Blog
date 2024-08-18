@@ -1,8 +1,6 @@
-# lane模型
+# lane 模型
 
 > 面试题：是否了解过 React 中的 lane 模型？为什么要从之前的 expirationTime 模型转换为 lane 模型？
-
-
 
 ## React 和 Scheduler 优先级的介绍
 
@@ -12,26 +10,24 @@
 
 接下来我们来看一下两套优先级模型的一个转换。
 
-
-
 在 Scheduler 内部，拥有 5 种优先级：
 
 ```js
-export const NoPriority = 0;
-export const ImmediatePriority = 1;
-export const UserBlockingPriority = 2;
-export const NormalPriority = 3;
-export const LowPriority = 4;
-export const IdlePriority = 5;
+export const NoPriority = 0
+export const ImmediatePriority = 1
+export const UserBlockingPriority = 2
+export const NormalPriority = 3
+export const LowPriority = 4
+export const IdlePriority = 5
 ```
 
 作为一个独立的包，需要考虑到通用性，Scheduler 和 React 的优先级并不共通，在 React 内部，有四种优先级，如下四种：
 
 ```js
-export const DiscreteEventPriority: EventPriority = SyncLane;
-export const ContinuousEventPriority: EventPriority = InputContinuousLane;
-export const DefaultEventPriority: EventPriority = DefaultLane;
-export const IdleEventPriority: EventPriority = IdleLane;
+export const DiscreteEventPriority: EventPriority = SyncLane
+export const ContinuousEventPriority: EventPriority = InputContinuousLane
+export const DefaultEventPriority: EventPriority = DefaultLane
+export const IdleEventPriority: EventPriority = IdleLane
 ```
 
 由于 React 中不同的交互对应的事件回调中产生的 update 会有不同的优先级，因此优先级与事件有关，因此在 React 内部的优先级也被称之为 EventPriority，各种优先级的含义如下：
@@ -43,14 +39,10 @@ export const IdleEventPriority: EventPriority = IdleLane;
 
 在上面的代码中，我们还可以观察出一件事情，不同级别的 EventPriority 对应的是不同的 lane
 
-
-
 既然 React 与 Scheduler 优先级不互通，那么这里就会涉及到一个转换的问题，这里分为：
 
 - React 优先级转为 Scheduler 的优先级
 - Scheduler 的优先级转为 React 的优先级
-
-
 
 **React 优先级转为 Scheduler 的优先级**
 
@@ -61,17 +53,17 @@ export const IdleEventPriority: EventPriority = IdleLane;
 ```js
 export function lanesToEventPriority(lanes: Lanes): EventPriority {
   // getHighestPriorityLane 方法用于分离出优先级最高的 lane
-  const lane = getHighestPriorityLane(lanes);
+  const lane = getHighestPriorityLane(lanes)
   if (!isHigherEventPriority(DiscreteEventPriority, lane)) {
-    return DiscreteEventPriority;
+    return DiscreteEventPriority
   }
   if (!isHigherEventPriority(ContinuousEventPriority, lane)) {
-    return ContinuousEventPriority;
+    return ContinuousEventPriority
   }
   if (includesNonIdleWork(lane)) {
-    return DefaultEventPriority;
+    return DefaultEventPriority
   }
-  return IdleEventPriority;
+  return IdleEventPriority
 }
 ```
 
@@ -79,53 +71,49 @@ export function lanesToEventPriority(lanes: Lanes): EventPriority {
 
 ```js
 // ...
-let schedulerPriorityLevel;
+let schedulerPriorityLevel
 switch (lanesToEventPriority(nextLanes)) {
   case DiscreteEventPriority:
-    schedulerPriorityLevel = ImmediateSchedulerPriority;
-    break;
+    schedulerPriorityLevel = ImmediateSchedulerPriority
+    break
   case ContinuousEventPriority:
-    schedulerPriorityLevel = UserBlockingSchedulerPriority;
-    break;
+    schedulerPriorityLevel = UserBlockingSchedulerPriority
+    break
   case DefaultEventPriority:
-    schedulerPriorityLevel = NormalSchedulerPriority;
-    break;
+    schedulerPriorityLevel = NormalSchedulerPriority
+    break
   case IdleEventPriority:
-    schedulerPriorityLevel = IdleSchedulerPriority;
-    break;
+    schedulerPriorityLevel = IdleSchedulerPriority
+    break
   default:
-    schedulerPriorityLevel = NormalSchedulerPriority;
-    break;
+    schedulerPriorityLevel = NormalSchedulerPriority
+    break
 }
 // ...
 ```
 
 举一个例子，假设现在有一个点击事件，在 onClick 中对应有一个回调函数来触发更新，该更新属于 DiscreteEventPriority，经过上面的两套转换规则进行转换之后，最终得到的 Scheduler 对应的优先级就是 ImmediateSchedulerPriority
 
-
-
 **Scheduler 的优先级转为 React 的优先级**
 
 转换相关的代码如下：
 
 ```js
-const schedulerPriority = getCurrentSchedulerPriorityLevel();
+const schedulerPriority = getCurrentSchedulerPriorityLevel()
 switch (schedulerPriority) {
   case ImmediateSchedulerPriority:
-    return DiscreteEventPriority;
+    return DiscreteEventPriority
   case UserBlockingSchedulerPriority:
-    return ContinuousEventPriority;
+    return ContinuousEventPriority
   case NormalSchedulerPriority:
   case LowSchedulerPriority:
-    return DefaultEventPriority;
+    return DefaultEventPriority
   case IdleSchedulerPriority:
-    return IdleEventPriority;
+    return IdleEventPriority
   default:
-    return DefaultEventPriority;
+    return DefaultEventPriority
 }
 ```
-
-
 
 这里会涉及到一个问题，在同一时间可能存在很多的更新，究竟先去更新哪一个？
 
@@ -136,8 +124,6 @@ React 在表达方式上面实际上经历了两次迭代：
 
 - 基于 expirationTime 的算法
 - 基于 lane 的算法
-
-
 
 ## expirationTime 模型
 
@@ -152,7 +138,7 @@ React 早期采用的就是 expirationTime 的算法，这一点和 Scheduler �
 在基于 expirationTime 模型的算法中，有如下的表达：
 
 ```js
-const isUpdateIncludedInBatch = priorityOfUpdate >= priorityOfBatch;
+const isUpdateIncludedInBatch = priorityOfUpdate >= priorityOfBatch
 ```
 
 priorityOfUpdate 表示的是当前 update 的优先级，priorityOfBatch 代表的是批对应的优先级下限，也就是说，当前的 update 只要大于等于 priorityOfBatch，就会被划分为同一批：
@@ -167,8 +153,6 @@ priorityOfUpdate 表示的是当前 update 的优先级，priorityOfBatch 代表
 
 究其原因，是因为 expirationTime 模型优先级算法耦合了“优先级”和“批”的概念，限制了模型的表达能力。优先级算法的本质是为 update 进行一个排序，但是 expirationTime 模型在完成排序的同时还默认的划定了“批”。
 
-
-
 ## lane 模型
 
 因此，基于上述的原因，React 中引入了 lane 模型。
@@ -178,37 +162,31 @@ priorityOfUpdate 表示的是当前 update 的优先级，priorityOfBatch 代表
 - 以优先级为依据，对 update 进行一个排序
 - 表达批的概念
 
-
-
-针对第一个问题，lane模型中设置了很多的 lane，每一个lane实际上是一个二进制数，通过二进制来表达优先级，越低的位代表越高的优先级，例如：
+针对第一个问题，lane 模型中设置了很多的 lane，每一个 lane 实际上是一个二进制数，通过二进制来表达优先级，越低的位代表越高的优先级，例如：
 
 ```js
-export const SyncLane: Lane = /*                        */ 0b0000000000000000000000000000001;
-export const InputContinuousLane: Lane = /*             */ 0b0000000000000000000000000000100;
-export const DefaultLane: Lane = /*                     */ 0b0000000000000000000000000010000;
-export const IdleLane: Lane = /*                        */ 0b0100000000000000000000000000000;
-export const OffscreenLane: Lane = /*                   */ 0b1000000000000000000000000000000;
+export const SyncLane: Lane = /*                        */ 0b0000000000000000000000000000001
+export const InputContinuousLane: Lane = /*             */ 0b0000000000000000000000000000100
+export const DefaultLane: Lane = /*                     */ 0b0000000000000000000000000010000
+export const IdleLane: Lane = /*                        */ 0b0100000000000000000000000000000
+export const OffscreenLane: Lane = /*                   */ 0b1000000000000000000000000000000
 ```
 
 在上面的代码中，SyncLane 是最高优先级，OffscreenLane 是最低优先级。
 
-
-
-对于第二个问题，lane模型能够非常灵活的表达批的概念：
+对于第二个问题，lane 模型能够非常灵活的表达批的概念：
 
 ```js
 // 要使用的批
-let batch = 0;
+let batch = 0
 // laneA 和 laneB。是不相邻的优先级
-const laneA = 0b0000000000000000000000001000000;
-const laneB = 0b0000000000000000000000000000001;
+const laneA = 0b0000000000000000000000001000000
+const laneB = 0b0000000000000000000000000000001
 // 将 laneA 纳入批中
-batch |= laneA;
+batch |= laneA
 // 将 laneB 纳入批中
-batch |= laneB;
+batch |= laneB
 ```
-
-
 
 ## 真题解答
 

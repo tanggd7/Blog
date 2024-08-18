@@ -36,14 +36,10 @@ diff 算法本身是有性能上面的消耗，在 React 文档中有提到，�
 
 但是如果使用了 key，那么此时的 DOM 元素是可以复用的，只不过前后交换了位置而已。
 
-
-
 接下来我们回头再来看限制一，对同级元素进行 diff，究竟是如何进行 diff ？整个 diff 的流程可以分为两大类：
 
 - 更新后只有一个元素，此时就会根据 newChild 创建对应的 wip FiberNode，对应的流程就是单节点 diff
 - 更新后有多个元素，此时就会遍历 newChild 创建对应的 wip FiberNode 已经它的兄弟元素，此时对应的流程就是多节点 diff
-
-
 
 ## 单节点 diff
 
@@ -99,8 +95,6 @@ diff 算法本身是有性能上面的消耗，在 React 文档中有提到，�
 
 没有设置 key，那么可以认为默认 key 就是 null，更新前后两个 key 是相同的，接下来就查看 type，发现 type 不同，因此不能复用。
 
-
-
 更新前
 
 ```jsx
@@ -114,8 +108,6 @@ diff 算法本身是有性能上面的消耗，在 React 文档中有提到，�
 ```
 
 更新前后 key 不同，不需要再判断 type，结果为不能复用
-
-
 
 更新前
 
@@ -131,8 +123,6 @@ diff 算法本身是有性能上面的消耗，在 React 文档中有提到，�
 
 更新前后 key 不同，不需要再判断 type，结果为不能复用
 
-
-
 更新前
 
 ```jsx
@@ -147,8 +137,6 @@ diff 算法本身是有性能上面的消耗，在 React 文档中有提到，�
 
 首先判断 key 相同，接下来判断 type 发现也是相同，这个 FiberNode 就能够复用，children 是一个文本节点，之后将文本节点更新即可。
 
-
-
 ## 多节点 diff
 
 所谓多节点 diff，指的是新节点有多个。
@@ -158,17 +146,13 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 - 第一轮遍历会尝试逐个的复用节点
 - 第二轮遍历处理上一轮遍历中没有处理完的节点
 
-
-
 ### 第一轮遍历
 
 第一轮遍历会从前往后依次进行遍历，存在三种情况：
 
-- 如果新旧子节点的key 和 type 都相同，说明可以复用
+- 如果新旧子节点的 key 和 type 都相同，说明可以复用
 - 如果新旧子节点的 key 相同，但是 type 不相同，这个时候就会根据 ReactElement 来生成一个全新的 fiber，旧的 fiber 被放入到 deletions 数组里面，回头统一删除。但是注意，此时遍历并不会终止
 - 如果新旧子节点的 key 和 type 都不相同，结束遍历
-
-
 
 **示例一**
 
@@ -176,7 +160,7 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 
 ```jsx
 <div>
-	<div key="a">a</div>
+  <div key="a">a</div>
   <div key="b">b</div>
   <div key="c">c</div>
   <div key="d">d</div>
@@ -187,7 +171,7 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 
 ```jsx
 <div>
-	<div key="a">a</div>
+  <div key="a">a</div>
   <div key="b">b</div>
   <div key="e">e</div>
   <div key="d">d</div>
@@ -206,15 +190,13 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 
 <img src="https://xiejie-typora.oss-cn-chengdu.aliyuncs.com/2023-02-28-075345.png" alt="image-20230228155345381" style="zoom:50%;" />
 
-
-
 **示例二**
 
 更新前
 
 ```jsx
 <div>
-	<div key="a">a</div>
+  <div key="a">a</div>
   <div key="b">b</div>
   <div key="c">c</div>
   <div key="d">d</div>
@@ -225,7 +207,7 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 
 ```jsx
 <div>
-	<div key="a">a</div>
+  <div key="a">a</div>
   <div key="b">b</div>
   <p key="c">c</p>
   <div key="d">d</div>
@@ -243,8 +225,6 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 
 <img src="https://xiejie-typora.oss-cn-chengdu.aliyuncs.com/2023-02-28-075725.png" alt="image-20230228155725123" style="zoom:50%;" />
 
-
-
 ### 第二轮遍历
 
 如果第一轮遍历被提前终止了，那么意味着有新的 React 元素或者旧的 FiberNode 没有遍历完，此时就会采用第二轮遍历
@@ -258,8 +238,6 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 - 新旧子节点都有剩余：会将剩余的 FiberNode 节点放入一个 map 里面，遍历剩余的新的 JSX 元素，然后从 map 中去寻找能够复用的 FiberNode 节点，如果能够找到，就拿来复用。（移动的情况）
 
   如果不能找到，就新增呗。然后如果剩余的 JSX 元素都遍历完了，map 结构中还有剩余的 Fiber 节点，就将这些 Fiber 节点添加到 deletions 数组里面，之后统一做删除操作
-
-
 
 **只剩下旧子节点**
 
@@ -283,11 +261,9 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 </div>
 ```
 
-遍历前面两个节点，发现能够复用，此时就会复用前面的节点，对于 React 元素来讲，遍历完前面两个就已经遍历结束了，因此剩下的FiberNode就会被放入到 deletions 数组里面，之后统一进行删除
+遍历前面两个节点，发现能够复用，此时就会复用前面的节点，对于 React 元素来讲，遍历完前面两个就已经遍历结束了，因此剩下的 FiberNode 就会被放入到 deletions 数组里面，之后统一进行删除
 
 <img src="https://xiejie-typora.oss-cn-chengdu.aliyuncs.com/2023-02-28-080358.png" alt="image-20230228160357510" style="zoom:50%;" />
-
-
 
 **只剩下新的 JSX 元素**
 
@@ -314,8 +290,6 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 根据新的 React 元素新增对应的 FiberNode 即可。
 
 <img src="https://xiejie-typora.oss-cn-chengdu.aliyuncs.com/2023-02-28-080558.png" alt="image-20230228160557549" style="zoom:50%;" />
-
-
 
 **新旧子节点都有剩余**
 
@@ -353,8 +327,6 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 
 <img src="https://xiejie-typora.oss-cn-chengdu.aliyuncs.com/2023-02-28-082152.png" alt="image-20230228162152734" style="zoom:50%;" />
 
-
-
 ## 双端对比算法
 
 所谓双端，指的是在新旧子节点的数组中，各用两个指针指向头尾的节点，在遍历的过程中，头尾两个指针同时向中间靠拢。
@@ -366,8 +338,6 @@ React 团队发现，在日常开发中，对节点的更新操作的情况往�
 每遍历到一个节点，就尝试进行双端比较：「新前 vs 旧前」、「新后 vs 旧后」、「新后 vs 旧前」、「新前 vs 旧后」，如果匹配成功，更新双端的指针。比如，新旧子节点通过「新前 vs 旧后」匹配成功，那么 newStartIndex += 1，oldEndIndex -= 1。
 
 如果新旧子节点通过「新后 vs 旧前」匹配成功，还需要将「旧前」对应的 DOM 节点插入到「旧后」对应的 DOM 节点之前。如果新旧子节点通过「新前 vs 旧后」匹配成功，还需要将「旧后」对应的 DOM 节点插入到「旧前」对应的 DOM 节点之前。
-
-
 
 实际上在 React 的源码中，解释了为什么不使用双端 diff
 
@@ -401,11 +371,9 @@ returnFiber: Fiber,
 
 将上面的注视翻译成中文如下：
 
->由于双端 diff 需要向前查找节点，但每个 FiberNode 节点上都没有反向指针，即前一个 FiberNode 通过 sibling 属性指向后一个 FiberNode，只能从前往后遍历，而不能反过来，因此该算法无法通过双端搜索来进行优化。
+> 由于双端 diff 需要向前查找节点，但每个 FiberNode 节点上都没有反向指针，即前一个 FiberNode 通过 sibling 属性指向后一个 FiberNode，只能从前往后遍历，而不能反过来，因此该算法无法通过双端搜索来进行优化。
 >
->React 想看下现在用这种方式能走多远，如果这种方式不理想，以后再考虑实现双端 diff。React 认为对于列表反转和需要进行双端搜索的场景是少见的，所以在这一版的实现中，先不对 bad case 做额外的优化。
-
-
+> React 想看下现在用这种方式能走多远，如果这种方式不理想，以后再考虑实现双端 diff。React 认为对于列表反转和需要进行双端搜索的场景是少见的，所以在这一版的实现中，先不对 bad case 做额外的优化。
 
 ## 真题解答
 
@@ -437,7 +405,7 @@ returnFiber: Fiber,
 >
 > 第一轮遍历会从前往后进行遍历，存在以下三种情况：
 >
-> - 如果新旧子节点的key 和 type 都相同，说明可以复用
+> - 如果新旧子节点的 key 和 type 都相同，说明可以复用
 > - 如果新旧子节点的 key 相同，但是 type 不相同，这个时候就会根据 ReactElement 来生成一个全新的 fiber，旧的 fiber 被放入到 deletions 数组里面，回头统一删除。但是注意，此时遍历并不会终止
 > - 如果新旧子节点的 key 和 type 都不相同，结束遍历
 >

@@ -27,28 +27,22 @@ commit 阶段整体可以分为 3 个子阶段：
 - commitXXXEffects_begin
 - commitXXXEffects_complete
 
-
-
 所分成的这三个子阶段，是有一些共同的事情要做的
-
-
 
 **commitXXXEffects**
 
 该函数是每个子阶段的入口函数，finishedWork 会作为 firstChild 参数传入进去，相关代码如下：
 
 ```js
-function commitXXXEffects(root, firstChild){
-  nextEffect = firstChild;
+function commitXXXEffects(root, firstChild) {
+  nextEffect = firstChild
   // 省略标记全局变量
-  commitXXXEffects_begin();
+  commitXXXEffects_begin()
   // 省略重置全局变量
 }
 ```
 
 因此在该函数中，主要的工作就是将 firstChild 赋值给全局变量 nextEffect，然后执行 commitXXXEffects_begin
-
-
 
 **commitXXXEffects_begin**
 
@@ -60,24 +54,22 @@ function commitXXXEffects(root, firstChild){
 接下来会对目标 FiberNode 执行 commitXXXEffects_complete 方法，commitXXXEffects_begin 相关代码如下：
 
 ```js
-function commitXXXEffects_begin(){
-  while(nextEffect !== null) {
-    let fiber = nextEffect;
-    let child = fiber.child;
-    
+function commitXXXEffects_begin() {
+  while (nextEffect !== null) {
+    let fiber = nextEffect
+    let child = fiber.child
+
     // 省略该子阶段的一些特有操作
-    
-    if(fiber.subtreeFlags !== NoFlags && child !== null){
+
+    if (fiber.subtreeFlags !== NoFlags && child !== null) {
       // 继续向下遍历
-      nextEffect = child;
+      nextEffect = child
     } else {
-      commitXXXEffects_complete();
+      commitXXXEffects_complete()
     }
   }
 }
 ```
-
-
 
 **commitXXXEffects_complete**
 
@@ -90,70 +82,67 @@ function commitXXXEffects_begin(){
 相关代码如下：
 
 ```js
-function commitXXXEffects_complete(root){
-  while(nextEffect !== null){
-    let fiber = nextEffect;
-    
-    try{
-      commitXXXEffectsOnFiber(fiber, root);
-    } catch(error){
+function commitXXXEffects_complete(root) {
+  while (nextEffect !== null) {
+    let fiber = nextEffect
+
+    try {
+      commitXXXEffectsOnFiber(fiber, root)
+    } catch (error) {
       // 错误处理
     }
-    
-    let sibling = fiber.sibling;
-    
-    if(sibling !== null){
+
+    let sibling = fiber.sibling
+
+    if (sibling !== null) {
       // ...
-      nextEffect = sibling;
+      nextEffect = sibling
       return
     }
-    
-    nextEffect = fiber.return;
+
+    nextEffect = fiber.return
   }
 }
 ```
 
-
-
 总结一下，每个子阶段都会以 DFS 的原则来进行遍历，最终会在 commitXXXEffectsOnFiber 中针对不同的 flags 做出不同的处理。
-
-
 
 ## BeforeMutation 阶段
 
 BeforeMutation 阶段的主要工作发生在 commitBeforeMutationEffects_complete 中的 commitBeforeMutationEffectsOnFiber 方法，相关代码如下：
 
 ```js
-function commitBeforeMutationEffectsOnFiber(finishedWork){
-  const current = finishedWork.alternate;
-  const flags = finishedWork.falgs;
-  
+function commitBeforeMutationEffectsOnFiber(finishedWork) {
+  const current = finishedWork.alternate
+  const flags = finishedWork.falgs
+
   //...
   // Snapshot 表示 ClassComponent 存在更新，且定义了 getSnapsshotBeforeUpdate 方法
-  if(flags & Snapshot !== NoFlags) {
-    switch(finishedWork.tag){
+  if (flags & (Snapshot !== NoFlags)) {
+    switch (finishedWork.tag) {
       case ClassComponent: {
-        if(current !== null){
-          const prevProps = current.memoizedProps;
-          const prevState = current.memoizedState;
-          const instance = finishedWork.stateNode;
-          
+        if (current !== null) {
+          const prevProps = current.memoizedProps
+          const prevState = current.memoizedState
+          const instance = finishedWork.stateNode
+
           // 执行 getSnapsshotBeforeUpdate
           const snapshot = instance.getSnapsshotBeforeUpdate(
-          	finishedWork.elementType === finishedWork.type ? 
-            prevProps : resolveDefaultProps(finishedWork.type, prevProps),
+            finishedWork.elementType === finishedWork.type
+              ? prevProps
+              : resolveDefaultProps(finishedWork.type, prevProps),
             prevState
           )
         }
-        break;
+        break
       }
       case HostRoot: {
         // 清空 HostRoot 挂载的内容，方便 Mutation 阶段渲染
-        if(supportsMutation){
-          const root = finishedWork.stateNode;
-          clearCOntainer(root.containerInfo);
+        if (supportsMutation) {
+          const root = finishedWork.stateNode
+          clearCOntainer(root.containerInfo)
         }
-        break;
+        break
       }
     }
   }
@@ -165,41 +154,37 @@ function commitBeforeMutationEffectsOnFiber(finishedWork){
 - ClassComponent：执行 getSnapsshotBeforeUpdate 方法
 - HostRoot：清空 HostRoot 挂载的内容，方便 Mutation 阶段进行渲染
 
-
-
 ## Mutation 阶段
 
 对于 HostComponent，Mutation 阶段的主要工作就是对 DOM 元素及进行增、删、改
-
-
 
 ### 删除 DOM 元素
 
 删除 DOM 元素相关代码如下：
 
 ```js
-function commitMutationEffects_begin(root){
-  while(nextEffect !== null){
-    const fiber = nextEffect;
+function commitMutationEffects_begin(root) {
+  while (nextEffect !== null) {
+    const fiber = nextEffect
     // 删除 DOM 元素
-    const deletions = fiber.deletions;
-    
-    if(deletions !== null){
-      for(let i=0;i<deletions.length;i++){
-        const childToDelete = deletions[i];
-        try{
-          commitDeletion(root, childToDelete, fiber);
-        } catch(error){
+    const deletions = fiber.deletions
+
+    if (deletions !== null) {
+      for (let i = 0; i < deletions.length; i++) {
+        const childToDelete = deletions[i]
+        try {
+          commitDeletion(root, childToDelete, fiber)
+        } catch (error) {
           // 省略错误处理
         }
       }
     }
-    
-    const child = fiber.child;
-    if((fiber.subtreeFlags & MutationMask) !== NoFlags && child !== null){
-      nextEffect = child;
+
+    const child = fiber.child
+    if ((fiber.subtreeFlags & MutationMask) !== NoFlags && child !== null) {
+      nextEffect = child
     } else {
-      commitMutationEffects_complete(root);
+      commitMutationEffects_complete(root)
     }
   }
 }
@@ -217,9 +202,9 @@ commitDeletion 方法内部的完整逻辑实际上是比较复杂的，原因�
 
 ```jsx
 <div>
-	<SomeClassComponent/>
+  <SomeClassComponent />
   <div ref={divRef}>
-  	<SomeFunctionComponent/>
+    <SomeFunctionComponent />
   </div>
 </div>
 ```
@@ -232,64 +217,60 @@ commitDeletion 方法内部的完整逻辑实际上是比较复杂的，原因�
 
 整个删除操作是以 DFS 的顺序，遍历子树的每个 FiberNode，执行对应的操作。
 
-
-
 ### 插入、移动 DOM 元素
 
 上面的删除操作是在 commitMutationEffects_begin 方法里面执行的，而插入和移动 DOM 元素则是在 commitMutationEffects_complete 方法里面的 commitMutationEffectsOnFiber 方法里面执行的，相关代码如下：
 
 ```js
-function commitMutationEffectsOnFiber(finishedWork, root){
-  const flags = finishedWork.flags;
+function commitMutationEffectsOnFiber(finishedWork, root) {
+  const flags = finishedWork.flags
 
   // ...
-  
-  const primaryFlags = flags & (Placement | Update | Hydrating);
-  
-  outer: switch(primaryFlags){
-    case Placement:{
+
+  const primaryFlags = flags & (Placement | Update | Hydrating)
+
+  outer: switch (primaryFlags) {
+    case Placement: {
       // 执行 Placement 对应操作
-      commitPlacement(finishedWork);
+      commitPlacement(finishedWork)
       // 执行完 Placement 对应操作后，移除 Placement flag
-      finishedWork.falgs &= ~Placement;
-      break;
+      finishedWork.falgs &= ~Placement
+      break
     }
-    case PlacementAndUpdate:{
+    case PlacementAndUpdate: {
       // 执行 Placement 对应操作
-      commitPlacement(finishedWork);
+      commitPlacement(finishedWork)
       // 执行完 Placement 对应操作后，移除 Placement flag
-      finishedWork.falgs &= ~Placement;
-      
+      finishedWork.falgs &= ~Placement
+
       // 执行 Update 对应操作
-      const current = finishedWork.alternate;
-      commitWork(current, finishedWork);
-      break;
+      const current = finishedWork.alternate
+      commitWork(current, finishedWork)
+      break
     }
-      
+
     // ...
   }
-  
-
 }
 ```
 
 可以看出， Placement flag 对应的操作方法为 commitPlacement，代码如下：
 
 ```js
-function commitPlacement(finishedWork){
+function commitPlacement(finishedWork) {
   // 获取 Host 类型的祖先 FiberNode
-  const parentFiber = getHostParentFiber(finishedWork);
-  
+  const parentFiber = getHostParentFiber(finishedWork)
+
   // 省略根据 parentFiber 获取对应 DOM 元素的逻辑
-  
-  let parent;
-  
+
+  let parent
+
   // 目标 DOM 元素会插入至 before 左边
-  const before = getHostSibling(finishedWork);
-  
+  const before = getHostSibling(finishedWork)
+
   // 省略分支逻辑
   // 执行插入或移动操作
-  insertOrAppendPlacementNode(finishedWork, before, parent);
+  insertOrAppendPlacementNode(finishedWork, before, parent)
 }
 ```
 
@@ -299,37 +280,42 @@ function commitPlacement(finishedWork){
 - 获取用于执行 parentNode.insertBefore(child, before) 方法的 “before 对应的 DOM 元素”
 - 执行 parentNode.insertBefore 方法（存在 before）或者 parentNode.appendChild 方法（不存在 before）
 
-对于“还没有插入的DOM元素”（对应的就是 mount 场景），insertBefore 会将目标 DOM 元素插入到 before 之前，appendChild 会将目标DOM元素作为父DOM元素的最后一个子元素插入
+对于“还没有插入的 DOM 元素”（对应的就是 mount 场景），insertBefore 会将目标 DOM 元素插入到 before 之前，appendChild 会将目标 DOM 元素作为父 DOM 元素的最后一个子元素插入
 
-对于“UI中已经存在的 DOM 元素”（对应 update 场景），insertBefore 会将目标 DOM 元素移动到 before 之前，appendChild 会将目标 DOM 元素移动到同级最后。
+对于“UI 中已经存在的 DOM 元素”（对应 update 场景），insertBefore 会将目标 DOM 元素移动到 before 之前，appendChild 会将目标 DOM 元素移动到同级最后。
 
 因此这也是为什么在 React 中，插入和移动所对应的 flag 都是 Placement flag 的原因。（可能面试的时候会被问到）
-
-
 
 ### 更新 DOM 元素
 
 更新 DOM 元素，一个最主要的工作就是更新对应的属性，执行的方法为 commitWork，相关代码如下：
 
 ```js
-function commitWork(current, finishedWork){
-  switch(finishedWork.tag){
+function commitWork(current, finishedWork) {
+  switch (finishedWork.tag) {
     // 省略其他类型处理逻辑
-    case HostComponent:{
-      const instance = finishedWork.stateNode;
-      if(instance != null){
-        const newProps = finishedWork.memoizedProps;
-        const oldProps = current !== null ? current.memoizedProps : newProps;
-        const type = finishedWork.type;
-        
-        const updatePayload = finishedWork.updateQueue;
-        finishedWork.updateQueue = null;
-        if(updatePayload !== null){
+    case HostComponent: {
+      const instance = finishedWork.stateNode
+      if (instance != null) {
+        const newProps = finishedWork.memoizedProps
+        const oldProps = current !== null ? current.memoizedProps : newProps
+        const type = finishedWork.type
+
+        const updatePayload = finishedWork.updateQueue
+        finishedWork.updateQueue = null
+        if (updatePayload !== null) {
           // 存在变化的属性
-          commitUpdate(instance, updatePayload, type, oldProps, newProps, finishedWork);
+          commitUpdate(
+            instance,
+            updatePayload,
+            type,
+            oldProps,
+            newProps,
+            finishedWork
+          )
         }
       }
-      return;
+      return
     }
   }
 }
@@ -345,36 +331,37 @@ function commitWork(current, finishedWork){
 相关代码如下：
 
 ```js
-function updateDOMProperties(domElement, updatePayload, wasCustomComponentTag, isCustomComponentTag){
-  for(let i=0;i< updatePayload.length; i+=2){
-    const propKey = updatePayload[i];
-    const propValue = updatePayload[i+1];
-    if(propKey === STYLE){
+function updateDOMProperties(
+  domElement,
+  updatePayload,
+  wasCustomComponentTag,
+  isCustomComponentTag
+) {
+  for (let i = 0; i < updatePayload.length; i += 2) {
+    const propKey = updatePayload[i]
+    const propValue = updatePayload[i + 1]
+    if (propKey === STYLE) {
       // 处理 style
-      setValueForStyle(domElement, propValue);
-    } else if(propKey === DANGEROUSLY_SET_INNER_HTML){
+      setValueForStyle(domElement, propValue)
+    } else if (propKey === DANGEROUSLY_SET_INNER_HTML) {
       // 处理 innerHTML
-      setInnerHTML(domElement, propValue);
-    } else if(propsKey === CHILDREN){
+      setInnerHTML(domElement, propValue)
+    } else if (propsKey === CHILDREN) {
       // 处理直接的文本节点
-      setTextContent(domElement, propValue);
+      setTextContent(domElement, propValue)
     } else {
       // 处理其他元素
-      setValueForProperty(domElement, propKey, propValue, isCustomComponentTag);
+      setValueForProperty(domElement, propKey, propValue, isCustomComponentTag)
     }
   }
 }
 ```
 
-
-
 当 Mutation 阶段的主要工作完成后，在进入 Layout 阶段之前，会执行如下的代码来完成 FiberTree 的切换：
 
 ```js
-root.current = finishedWork;
+root.current = finishedWork
 ```
-
-
 
 ## Layout 阶段
 
@@ -384,8 +371,6 @@ root.current = finishedWork;
 
 - 对于 ClassComponent：该阶段会执行 componentDidMount/Update 方法
 - 对于 FunctionComponent：该阶段会执行 useLayoutEffect 的回调函数
-
-
 
 ## 真题解答
 

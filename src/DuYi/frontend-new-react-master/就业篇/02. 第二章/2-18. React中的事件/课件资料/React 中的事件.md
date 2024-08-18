@@ -10,8 +10,6 @@
 
 SyntheticEvent （合成事件对象）这个是对浏览器原生事件对象的一层封装，兼容了主流的浏览器，同时拥有和浏览器原生事件相同的 API，例如 stopPropagation 和 preventDefault。SyntheticEvent 存在的目的就是为了消除不同浏览器在事件对象上面的一个差异。
 
-
-
 - 模拟实现事件传播机制
 
 利用事件委托的原理，React 会基于 FiberTree 来实现了事件的捕获、目标以及冒泡的过程（就类似于原生 DOM 的事件传递过程），并且在自己实现的这一套事件传播机制中还加入了许多新的特性，比如：
@@ -21,8 +19,6 @@ SyntheticEvent （合成事件对象）这个是对浏览器原生事件对象�
   - 比如在 React 中统一采用 onXXX 的驼峰写法来绑定事件
 - 定制事件的行为
   - 例如 onChange 的默认行为与原生的 oninput 是相同
-
-
 
 React 事件系统需要考虑到很多边界情况，因此代码量是非常大的，我们这里通过书写一个简易版的事件系统来学习 React 事件系统的原理。
 
@@ -35,13 +31,13 @@ const jsx = (
     <button
       onClick={(e) => {
         // e.stopPropagation();
-        console.log("click button");
+        console.log("click button")
       }}
     >
       点击
     </button>
   </div>
-);
+)
 ```
 
 在上面的代码中，我们为外层的 div 以及内部的 button 都绑定了点击事件，默认情况下，点击 button 会打印出 click button、click div，如果打开 e.stopPropagation( )，那么就会阻止事件冒泡，只打印出 click button。
@@ -49,8 +45,6 @@ const jsx = (
 可以看出，React 内部的事件系统实现了“模拟实现事件传播机制”。
 
 接下来我们自己来写一套简易版事件系统，绑定事件的方式改为 bindXXXX
-
-
 
 ## 实现 SyntheticEvent
 
@@ -63,23 +57,21 @@ SyntheticEvent 指的是合成事件对象，在 React 中的 SyntheticEvent 会
 class SyntheticEvent {
   constructor(e) {
     // 保存原生的事件对象
-    this.nativeEvent = e;
+    this.nativeEvent = e
   }
   // 合成事件对象需要提供一个和原生 DOM 同名的阻止冒泡的方法
   stopPropagation() {
     // 当开发者调用 stopPropagation 方法，将该合成事件对象的 _stopPropagation 设置为 true
-    this._stopPropagation = true;
+    this._stopPropagation = true
     if (this.nativeEvent.stopPropagation) {
       // 调用原生事件对象的 stopPropagation 方法来阻止冒泡
-      this.nativeEvent.stopPropagation();
+      this.nativeEvent.stopPropagation()
     }
   }
 }
 ```
 
 在上面的代码中，我们创建了一个 SyntheticEvent 类，这个类可以用来创建合成事件对象。内部保存了原生的事件对象，还提供了一个和原生 DOM 的事件对象同名的阻止冒泡的方法。
-
-
 
 ## 实现事件的传播机制
 
@@ -102,18 +94,18 @@ class SyntheticEvent {
 export const addEvent = (container, type) => {
   container.addEventListener(type, (e) => {
     // 进行事件的派发
-    dispatchEvent(e, type.toUpperCase());
-  });
-};
+    dispatchEvent(e, type.toUpperCase())
+  })
+}
 ```
 
 接下来在入口中通过调用 addEvent 来绑定事件，如下：
 
 ```js
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(jsx);
+const root = ReactDOM.createRoot(document.getElementById("root"))
+root.render(jsx)
 // 进行根元素的事件绑定，换句话说，就是使用我们自己的事件系统
-addEvent(document.getElementById("root"), "click");
+addEvent(document.getElementById("root"), "click")
 ```
 
 在 addEvent 里面，调用 dispatchEvent 做事件的派发：
@@ -126,26 +118,26 @@ addEvent(document.getElementById("root"), "click");
  */
 const dispatchEvent = (e, type) => {
   // 实例化一个合成事件对象
-  const se = new SyntheticEvent(e);
+  const se = new SyntheticEvent(e)
   // 拿到触发事件的元素
-  const ele = e.target;
-  let fiber;
+  const ele = e.target
+  let fiber
   // 通过 DOM 元素找到对应的 FiberNode
   for (let prop in ele) {
     if (prop.toLocaleLowerCase().includes("fiber")) {
-      fiber = ele[prop];
+      fiber = ele[prop]
     }
   }
   // 找到对应的 fiberNode 之后，接下来我们需要收集路径中该事件类型所对应的所有的回调函数
-  const paths = collectPaths(type, fiber);
+  const paths = collectPaths(type, fiber)
   // 模拟捕获的实现
-  triggerEventFlow(paths, type + "CAPTURE", se);
+  triggerEventFlow(paths, type + "CAPTURE", se)
   // 模拟冒泡的实现
   // 首先需要判断是否阻止了冒泡，如果没有，那么我们只需要将 paths 进行反向再遍历执行一次即可
-  if(!se._stopPropagation){
-    triggerEventFlow(paths.reverse(), type, se);
+  if (!se._stopPropagation) {
+    triggerEventFlow(paths.reverse(), type, se)
   }
-};
+}
 ```
 
 dispatchEvent 方法对应有如下的步骤：
@@ -155,8 +147,6 @@ dispatchEvent 方法对应有如下的步骤：
 - 收集从当前的 FiberNode 一直往上所有的该事件类型的回调函数
 - 模拟捕获的实现
 - 模拟冒泡的实现
-
-
 
 ## 收集路径中对应的事件处理函数
 
@@ -173,26 +163,26 @@ dispatchEvent 方法对应有如下的步骤：
  * }]
  */
 const collectPaths = (type, begin) => {
-  const paths = []; // 存放收集到所有的事件回调函数
+  const paths = [] // 存放收集到所有的事件回调函数
   // 如果不是 HostRootFiber，就一直往上遍历
   while (begin.tag !== 3) {
-    const { memoizedProps, tag } = begin;
+    const { memoizedProps, tag } = begin
     // 如果 tag 对应的值为 5，说明是 DOM 元素对应的 FiberNode
     if (tag === 5) {
-      const eventName = "bind" + type; // bindCLICK
+      const eventName = "bind" + type // bindCLICK
       // 接下来我们来看当前的节点是否有绑定事件
       if (memoizedProps && Object.keys(memoizedProps).includes(eventName)) {
         // 如果进入该 if，说明当前这个节点绑定了对应类型的事件
         // 需要进行收集，收集到 paths 数组里面
-        const pathNode = {};
-        pathNode[type] = memoizedProps[eventName];
-        paths.push(pathNode);
+        const pathNode = {}
+        pathNode[type] = memoizedProps[eventName]
+        paths.push(pathNode)
       }
-      begin = begin.return;
+      begin = begin.return
     }
   }
-  return paths;
-};
+  return paths
+}
 ```
 
 实现的思路就是从当前的 FiberNode 一直向上遍历，直到 HostRootFiber，收集遍历过程中 FiberNode.memoizedProps 属性所保存的对应的事件处理函数。
@@ -207,13 +197,11 @@ const collectPaths = (type, begin) => {
 }]
 ```
 
-
-
 ## 捕获和冒泡的实现
 
 由于我们是从目标元素的 FiberNode 向上遍历的，因此收集到的顺序：
 
- [  目标元素的事件回调，某个祖先元素的事件回调，某个更上层的祖先元素的事件回调 ]
+[ 目标元素的事件回调，某个祖先元素的事件回调，某个更上层的祖先元素的事件回调 ]
 
 因此要模拟捕获阶段的实现，我们就需要从后往前进行遍历并执行：
 
@@ -228,37 +216,33 @@ const triggerEventFlow = (paths, type, se) => {
   // 挨着挨着遍历这个数组，执行回调函数即可
   // 模拟捕获阶段的实现，所以需要从后往前遍历数组并执行回调
   for (let i = paths.length; i--; ) {
-    const pathNode = paths[i];
-    const callback = pathNode[type];
+    const pathNode = paths[i]
+    const callback = pathNode[type]
     if (callback) {
       // 存在回调函数，执行该回调
-      callback.call(null, se);
+      callback.call(null, se)
     }
     if (se._stopPropagation) {
       // 说明在当前的事件回调函数中，开发者阻止继续往上冒泡
-      break;
+      break
     }
   }
-};
+}
 ```
 
-在执行事件的回调的时候，每一次执行需要检验 _stopPropagation 属性是否为 true，如果为true，说明当前的事件回调函数中阻止了事件冒泡，因此我们应当停止后续的遍历。
+在执行事件的回调的时候，每一次执行需要检验 \_stopPropagation 属性是否为 true，如果为 true，说明当前的事件回调函数中阻止了事件冒泡，因此我们应当停止后续的遍历。
 
 如果是模拟冒泡阶段，只需要将 paths 进行反向再遍历一次并执行即可：
 
 ```js
 // 模拟冒泡的实现
 // 首先需要判断是否阻止了冒泡，如果没有，那么我们只需要将 paths 进行反向再遍历执行一次即可
-if(!se._stopPropagation){
-  triggerEventFlow(paths.reverse(), type, se);
+if (!se._stopPropagation) {
+  triggerEventFlow(paths.reverse(), type, se)
 }
 ```
 
-
-
 至此，我们就实现了一个简易版的 React 事件系统。
-
-
 
 ## 真题解答
 
@@ -280,6 +264,6 @@ if(!se._stopPropagation){
 >
 > - 不同事件对应了不同的优先级
 > - 定制事件名
->  - 例如事件统一采用如 “onXXX” 的驼峰写法
+> - 例如事件统一采用如 “onXXX” 的驼峰写法
 > - 定制事件行为
->  - 例如 onChange 的默认行为与原生 oninput 相同
+> - 例如 onChange 的默认行为与原生 oninput 相同

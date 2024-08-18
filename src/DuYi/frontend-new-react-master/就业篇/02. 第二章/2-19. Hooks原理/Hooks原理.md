@@ -1,8 +1,6 @@
-# Hooks原理
+# Hooks 原理
 
-> 面试题：Hook是如何保存函数组件状态的？为什么不能在循环，条件或嵌套函数中调用 Hook ？
-
-
+> 面试题：Hook 是如何保存函数组件状态的？为什么不能在循环，条件或嵌套函数中调用 Hook ？
 
 ## Hook 内部介绍
 
@@ -25,7 +23,7 @@ const HooksDispatcherOnMount: Dispatcher = {
 };
 ```
 
-- HoosDispatcherOnUpdate：函数组件进行更新的时候，会执行该对象所对应的方法。此时 Fiber 上面已经存储了函数组件的相关信息，这些 Hook 需要做的就是去获取或者更新维护这些 FIber 的信息
+- HoosDispatcherOnUpdate：函数组件进行更新的时候，会执行该对象所对应的方法。此时 Fiber 上面已经存储了函数组件的相关信息，这些 Hook 需要做的就是去获取或者更新维护这些 Fiber 的信息
 
 ```js
 /* 函数组件更新用的 hooks */
@@ -67,33 +65,29 @@ export const ContextOnlyDispatcher: Dispatcher = {
 - update 阶段：函数组件进行状态的更新，调用的就是 updateXXX 对应的函数
 - 其他场景下（报错）：此时调用的就是 throwInvaildError
 
-
-
 当 FC 进入到 render 流程的时候，首先会判断是初次渲染还是更新：
 
 ```js
-if(current !== null && current.memoizedState !== null) {
+if (current !== null && current.memoizedState !== null) {
   // 说明是 update
-  ReactCurrentDispatcher.current = HooksDispatcherOnUpdate;
+  ReactCurrentDispatcher.current = HooksDispatcherOnUpdate
 } else {
   // 说明是 mount
-  ReactCurrentDispatcher.current = HooksDispatcherOnMount;
+  ReactCurrentDispatcher.current = HooksDispatcherOnMount
 }
 ```
 
-判断了是mount还是update之后，会给 ReactCurrentDispatcher.current 赋值对应的 dispatcher，因为赋值了不同的上下文对象，因此就可以根据不同上下文对象调用不同的方法。
+判断了是 mount 还是 update 之后，会给 ReactCurrentDispatcher.current 赋值对应的 dispatcher，因为赋值了不同的上下文对象，因此就可以根据不同上下文对象调用不同的方法。
 
 假设有嵌套的 hook：
 
 ```js
-useEffect(()=>{
-  useState(0);
+useEffect(() => {
+  useState(0)
 })
 ```
 
 那么此时的上下文对象指向 ContextOnlyDispatcher，最终执行的就是 throwInvalidHookError，抛出错误。
-
-
 
 接下来我们来看一下 hook 的一个数据结构
 
@@ -103,7 +97,7 @@ const hook = {
   baseState: null,
   baseQueue: null,
   queue: null,
-  next: null
+  next: null,
 }
 ```
 
@@ -123,21 +117,26 @@ const hook = {
 
 有些 Hook 不需要 memoizedState 保存自身数据，比如 useContext。
 
-
-
 ## Hook 的一个执行流程
 
 当 FC 进入到 render 阶段时，会被 renderWithHooks 函数处理执行：
 
 ```js
-export function renderWithHooks(current, workInProgress, Component, props, secondArg, nextRenderLanes) {
-  renderLanes = nextRenderLanes;
-  currentlyRenderingFiber = workInProgress;
+export function renderWithHooks(
+  current,
+  workInProgress,
+  Component,
+  props,
+  secondArg,
+  nextRenderLanes
+) {
+  renderLanes = nextRenderLanes
+  currentlyRenderingFiber = workInProgress
 
   // 每一次执行函数组件之前，先清空状态 （用于存放hooks列表）
-  workInProgress.memoizedState = null;
+  workInProgress.memoizedState = null
   // 清空状态（用于存放effect list）
-  workInProgress.updateQueue = null;
+  workInProgress.updateQueue = null
   // ...
 
   // 判断组件是初始化流程还是更新流程
@@ -147,38 +146,35 @@ export function renderWithHooks(current, workInProgress, Component, props, secon
   ReactCurrentDispatcher.current =
     current === null || current.memoizedState === null
       ? HooksDispatcherOnMount
-      : HooksDispatcherOnUpdate;
+      : HooksDispatcherOnUpdate
 
   // 执行我们真正函数组件，所有的 hooks 将依次执行。
-  let children = Component(props, secondArg);
+  let children = Component(props, secondArg)
 
   // ...
 
   // 判断环境
-  finishRenderingHooks(current, workInProgress);
-  return children;
+  finishRenderingHooks(current, workInProgress)
+  return children
 }
 
 function finishRenderingHooks(current, workInProgress) {
-    // 防止 hooks 在函数组件外部调用，如果调用直接报错
-    ReactCurrentDispatcher.current = ContextOnlyDispatcher;
-    // ...
+  // 防止 hooks 在函数组件外部调用，如果调用直接报错
+  ReactCurrentDispatcher.current = ContextOnlyDispatcher
+  // ...
 }
-
 ```
 
 renderWithHooks 会被每次函数组件触发时（mount、update），该方法就会清空 workInProgress 的 memoizedState 以及 updateQueue，接下来判断该组件究竟是初始化还是更新，为 ReactCurrentDispatcher.current 赋值不同的上下文对象，之后调用
 
 Component 方法来执行函数组件，组件里面所书写的 hook 就会依次执行。
 
-
-
 接下来我们来以 useState 为例看一下整个 hook 的执行流程：
 
 ```jsx
-function App(){
-  const [count, setCount] = useState(0);
-  return <div onClick={()=>setCount(count+1)}>{count}</div>
+function App() {
+  const [count, setCount] = useState(0)
+  return <div onClick={() => setCount(count + 1)}>{count}</div>
 }
 ```
 
@@ -189,33 +185,33 @@ mount 阶段调用的是 mountState，相关代码如下：
 ```js
 function mountState(initialState) {
   // 1. 拿到 hook 对象
-  const hook = mountWorkInProgressHook();
+  const hook = mountWorkInProgressHook()
   if (typeof initialState === "function") {
-    initialState = initialState();
+    initialState = initialState()
   }
-  
+
   // 2. 初始化hook的属性
   // 2.1 设置 hook.memoizedState/hook.baseState
-  hook.memoizedState = hook.baseState = initialState;
+  hook.memoizedState = hook.baseState = initialState
   const queue = {
     pending: null,
     lanes: NoLanes,
     dispatch: null,
     lastRenderedReducer: basicStateReducer,
     lastRenderedState: initialState,
-  };
+  }
   // 2.2 设置 hook.queue
-  hook.queue = queue;
-  
+  hook.queue = queue
+
   // 2.3 设置 hook.dispatch
   const dispatch = (queue.dispatch = dispatchSetState.bind(
     null,
     currentlyRenderingFiber,
     queue
-  ));
-  
+  ))
+
   // 3. 返回[当前状态, dispatch函数]
-  return [hook.memoizedState, dispatch];
+  return [hook.memoizedState, dispatch]
 }
 ```
 
@@ -231,41 +227,39 @@ function mountWorkInProgressHook() {
     queue: null, // Hook 自身维护的更新队列
 
     next: null, // next 指向下一个 Hook
-  };
-  
+  }
+
   // 最终 hook 对象是要以链表形式串联起来，因此需要判断当前的 hook 是否是链表的第一个
   if (workInProgressHook === null) {
-    // 如果当前组件的 Hook 链表为空，那么就将刚刚新建的 Hook 作为 Hook 链表的第一个节点（头结点） 
+    // 如果当前组件的 Hook 链表为空，那么就将刚刚新建的 Hook 作为 Hook 链表的第一个节点（头结点）
     // This is the first hook in the list
-    currentlyRenderingFiber.memoizedState = workInProgressHook = hook;
+    currentlyRenderingFiber.memoizedState = workInProgressHook = hook
   } else {
     // 如果当前组件的 Hook 链表不为空，那么就将刚刚新建的 Hook 添加到 Hook 链表的末尾（作为尾结点）
     // Append to the end of the list
-    workInProgressHook = workInProgressHook.next = hook;
+    workInProgressHook = workInProgressHook.next = hook
   }
-  return workInProgressHook;
+  return workInProgressHook
 }
 ```
-
-
 
 假设现在我们有如下的一个组件：
 
 ```js
 function App() {
-  const [number, setNumber] = React.useState(0); // 第一个hook
-  const [num, setNum] = React.useState(1); // 第二个hook
-  const dom = React.useRef(null); // 第三个hook
+  const [number, setNumber] = React.useState(0) // 第一个hook
+  const [num, setNum] = React.useState(1) // 第二个hook
+  const dom = React.useRef(null) // 第三个hook
   React.useEffect(() => {
     // 第四个hook
-    console.log(dom.current);
-  }, []);
+    console.log(dom.current)
+  }, [])
   return (
     <div ref={dom}>
       <div onClick={() => setNumber(number + 1)}> {number} </div>
       <div onClick={() => setNum(num + 1)}> {num}</div>
     </div>
-  );
+  )
 }
 ```
 
@@ -277,45 +271,45 @@ function App() {
 
 ```js
 function updateWorkInProgressHook() {
-  let nextCurrentHook;
+  let nextCurrentHook
   if (currentHook === null) {
     // 从 alternate 上获取到 fiber 对象
-    const current = currentlyRenderingFiber.alternate;
+    const current = currentlyRenderingFiber.alternate
     if (current !== null) {
       // 拿到第一个 hook 对象
-      nextCurrentHook = current.memoizedState;
+      nextCurrentHook = current.memoizedState
     } else {
-      nextCurrentHook = null;
+      nextCurrentHook = null
     }
   } else {
     // 拿到下一个 hook
-    nextCurrentHook = currentHook.next;
+    nextCurrentHook = currentHook.next
   }
 
   // 更新 workInProgressHook 的指向
   // 让 workInProgressHook 指向最新的 hook
-  let nextWorkInProgressHook; // 下一个要进行工作的 hook
+  let nextWorkInProgressHook // 下一个要进行工作的 hook
   if (workInProgressHook === null) {
     // 当前是第一个，直接从 fiber 上获取第一个 hook
-    nextWorkInProgressHook = currentlyRenderingFiber.memoizedState;
+    nextWorkInProgressHook = currentlyRenderingFiber.memoizedState
   } else {
     // 取链表的下一个 hook
-    nextWorkInProgressHook = workInProgressHook.next;
+    nextWorkInProgressHook = workInProgressHook.next
   }
 
   // nextWorkInProgressHook 指向的是当前要工作的 hook
   if (nextWorkInProgressHook !== null) {
     // There's already a work-in-progress. Reuse it.
     // 进行复用
-    workInProgressHook = nextWorkInProgressHook; 
-    nextWorkInProgressHook = workInProgressHook.next;
+    workInProgressHook = nextWorkInProgressHook
+    nextWorkInProgressHook = workInProgressHook.next
 
-    currentHook = nextCurrentHook;
+    currentHook = nextCurrentHook
   } else {
     // Clone from the current hook.
     // 进行克隆
     if (nextCurrentHook === null) {
-      const currentFiber = currentlyRenderingFiber.alternate;
+      const currentFiber = currentlyRenderingFiber.alternate
       if (currentFiber === null) {
         // This is the initial render. This branch is reached when the component
         // suspends, resumes, then renders an additional hook.
@@ -327,15 +321,15 @@ function updateWorkInProgressHook() {
           queue: null,
 
           next: null,
-        };
-        nextCurrentHook = newHook;
+        }
+        nextCurrentHook = newHook
       } else {
         // This is an update. We should always have a current hook.
-        throw new Error("Rendered more hooks than during the previous render.");
+        throw new Error("Rendered more hooks than during the previous render.")
       }
     }
 
-    currentHook = nextCurrentHook;
+    currentHook = nextCurrentHook
 
     const newHook = {
       memoizedState: currentHook.memoizedState,
@@ -345,17 +339,17 @@ function updateWorkInProgressHook() {
       queue: currentHook.queue,
 
       next: null,
-    };
+    }
     // 之后的操作和 mount 时候一样
     if (workInProgressHook === null) {
       // This is the first hook in the list.
-      currentlyRenderingFiber.memoizedState = workInProgressHook = newHook;
+      currentlyRenderingFiber.memoizedState = workInProgressHook = newHook
     } else {
       // Append to the end of the list.
-      workInProgressHook = workInProgressHook.next = newHook;
+      workInProgressHook = workInProgressHook.next = newHook
     }
   }
-  return workInProgressHook;
+  return workInProgressHook
 }
 ```
 
@@ -364,12 +358,12 @@ function updateWorkInProgressHook() {
 ```js
 // ...
 if (nextWorkInProgressHook !== null) {
-    // There's already a work-in-progress. Reuse it.
-    // 进行复用
-    workInProgressHook = nextWorkInProgressHook; 
-    nextWorkInProgressHook = workInProgressHook.next;
-    
-    currentHook = nextCurrentHook;
+  // There's already a work-in-progress. Reuse it.
+  // 进行复用
+  workInProgressHook = nextWorkInProgressHook
+  nextWorkInProgressHook = workInProgressHook.next
+
+  currentHook = nextCurrentHook
 }
 // ...
 ```
@@ -378,35 +372,35 @@ if (nextWorkInProgressHook !== null) {
 
 > 面试题：hook 为什么通常放在顶部，而且不能写在条件或者循环语句里面？
 >
-> 因为更新的过程中，如果通过 if 条件增加或者删除了 hook，那么在复用的时候，就会产生当前hook 的顺序和之前 hook 的顺序不一致的问题。
+> 因为更新的过程中，如果通过 if 条件增加或者删除了 hook，那么在复用的时候，就会产生当前 hook 的顺序和之前 hook 的顺序不一致的问题。
 
 例如，我们将上面的代码进行修改：
 
 ```js
 function App({ showNumber }) {
   let number, setNumber
-  showNumber && ([ number,setNumber ] = React.useState(0)) // 第一个hooks
-  const [num, setNum] = React.useState(1); // 第二个hook
-  const dom = React.useRef(null); // 第三个hook
+  showNumber && ([number, setNumber] = React.useState(0)) // 第一个hooks
+  const [num, setNum] = React.useState(1) // 第二个hook
+  const dom = React.useRef(null) // 第三个hook
   React.useEffect(() => {
     // 第四个hook
-    console.log(dom.current);
-  }, []);
+    console.log(dom.current)
+  }, [])
   return (
     <div ref={dom}>
       <div onClick={() => setNumber(number + 1)}> {number} </div>
       <div onClick={() => setNum(num + 1)}> {num}</div>
     </div>
-  );
+  )
 }
 ```
 
 假设第一次父组件传递过来的 showNumber 为 true，此时就会渲染第一个 hook，第二次渲染的时候，假设父组件传递过来的是 false，那么第一个 hook 就不会执行，那么逻辑就会变得如下表所示：
 
-| *hook* 链表顺序 | 第一次     | 第二次     |
+| _hook_ 链表顺序 | 第一次     | 第二次     |
 | :-------------- | :--------- | :--------- |
-| 第一个 *hook*   | *useState* | *useState* |
-| 第二个 *hook*   | *useState* | *useRef*   |
+| 第一个 _hook_   | _useState_ | _useState_ |
+| 第二个 _hook_   | _useState_ | _useRef_   |
 
 那么此时在进行复用的时候就会报错：
 
@@ -416,21 +410,19 @@ function App({ showNumber }) {
 
 <img src="https://xiejie-typora.oss-cn-chengdu.aliyuncs.com/2023-03-03-031320.jpg" alt="16717800284171" style="zoom: 33%;" />
 
-
-
 ## 真题解答
 
-> 题目：Hook是如何保存函数组件状态的？为什么不能在循环，条件或嵌套函数中调用 Hook ？
+> 题目：Hook 是如何保存函数组件状态的？为什么不能在循环，条件或嵌套函数中调用 Hook ？
 >
 > 首先 Hook 是一个对象，大致有如下的结构：
 >
 > ```js
 > const hook = {
-> memoizedState: null,
-> baseState: null,
-> baseQueue: null,
-> queue: null,
-> next: null
+>   memoizedState: null,
+>   baseState: null,
+>   baseQueue: null,
+>   queue: null,
+>   next: null,
 > }
 > ```
 >
@@ -441,4 +433,4 @@ function App({ showNumber }) {
 >
 > 一个组件中的 hook 会以链表的形式串起来，FiberNode 的 memoizedState 中保存了 Hooks 链表中的第一个 Hook
 >
-> 在更新时，会复用之前的 Hook，如果通过 *if* 条件语句，增加或者删除 *hooks*，在复用 *hooks* 过程中，会产生复用 *hooks* 状态和当前 *hooks* 不一致的问题。
+> 在更新时，会复用之前的 Hook，如果通过 _if_ 条件语句，增加或者删除 _hooks_，在复用 _hooks_ 过程中，会产生复用 _hooks_ 状态和当前 _hooks_ 不一致的问题。
