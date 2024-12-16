@@ -1,5 +1,5 @@
 function deepCopy(value) {
-  const cache = new Map()
+  const cache = new Map() // 缓存遇到的对象，防止循环拷贝
 
   function _deepCopy(value) {
     if (value === null || typeof value !== "object") {
