@@ -34,11 +34,11 @@ const func_4 = (next) => {
 */
 const compose = (funcs) => {
   const revsersedFuncs = funcs.reverse()
-  return (...args) => {
+  return (callback) => {
     let _ret = null
     revsersedFuncs.forEach((func, index) => {
       if (index === 0) {
-        _ret = func(...args) // 最后一个 func_4 中的 next 其实就是 原始的 dispatch
+        _ret = func(callback) // 最后一个 func_4 中的 next 其实就是 原始的 dispatch
       } else {
         _ret = func(_ret)
       }
